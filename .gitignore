@@ -50,3 +50,12 @@ modules.order
 Module.symvers
 Mkfile.old
 dkms.conf
+
+# WASM build output
+/build-wasm/
+
+# Native CI build output
+/build-native/
+
+# Per-platform build outputs (library/out/<platform>)
+/library/out/
