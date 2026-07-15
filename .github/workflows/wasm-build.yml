@@ -1,0 +1,51 @@
+name: WASM build
+
+on:
+  push:
+    #  every branch: tests must run after each commit pushed
+    paths:
+      - 'library/**'
+      - 'integration/WebAssembly/**'
+      - '.github/workflows/wasm-build.yml'
+  pull_request:
+    paths:
+      - 'library/**'
+      - 'integration/WebAssembly/**'
+      - '.github/workflows/wasm-build.yml'
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    container: emscripten/emsdk:3.1.61
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Configure (emcmake)
+        run: |
+          emcmake cmake -S library -B build-wasm \
+            -DCMAKE_BUILD_TYPE=MinSizeRel \
+            -DUAPKI_LIBS_TYPE=STATIC \
+            -DUAPKI_CM_PKCS12_LIB_TYPE=STATIC \
+            -DUAPKI_DISABLE_COPY=ON
+
+      - name: Build
+        run: cmake --build build-wasm -j"$(nproc)"
+
+      - name: Verify artifacts
+        run: |
+          ls -la build-wasm/wasm/uapki.js build-wasm/wasm/uapki.wasm
+          # the JS loader must export the module factory
+          grep -q "createUapkiModule" build-wasm/wasm/uapki.js
+
+      - name: Smoke test (Node.js)
+        run: node integration/WebAssembly/test-node.mjs build-wasm/wasm/uapki.js
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: uapki-wasm
+          path: |
+            build-wasm/wasm/uapki.js
+            build-wasm/wasm/uapki.wasm
+          if-no-files-found: error
