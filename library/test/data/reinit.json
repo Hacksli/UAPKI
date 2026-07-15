@@ -1,0 +1,62 @@
+{
+  "comment": "Library re-initialization: INIT after DEINIT is performed with skipSelfTest=true - by design the self-test runs once at application start",
+  "commentUsage": "uapki reinit.json",
+  "tasks": [
+    {
+      "method": "VERSION"
+    },
+    {
+      "comment": "Перша ініціалізація - з самотестуванням (виконується один раз при старті програми)",
+      "method": "INIT",
+      "parameters": {
+        "cmProviders": {
+          "dir": "",
+          "allowedProviders": [
+            {
+              "lib": "cm-pkcs12"
+            }
+          ]
+        },
+        "certCache": {
+          "path": "certs/",
+          "trustedCerts": []
+        },
+        "crlCache": {
+          "path": "crls/"
+        },
+        "offline": true
+      },
+      "actionByError": "STOP"
+    },
+    {
+      "method": "DEINIT"
+    },
+    {
+      "comment": "Повторна ініціалізація - обов'язково з skipSelfTest=true (самотестування вдруге не виконується; без цього параметра INIT поверне SELF_TEST_FAIL)",
+      "method": "INIT",
+      "parameters": {
+        "skipSelfTest": true,
+        "cmProviders": {
+          "dir": "",
+          "allowedProviders": [
+            {
+              "lib": "cm-pkcs12"
+            }
+          ]
+        },
+        "certCache": {
+          "path": "certs/",
+          "trustedCerts": []
+        },
+        "crlCache": {
+          "path": "crls/"
+        },
+        "offline": true
+      },
+      "actionByError": "STOP"
+    },
+    {
+      "method": "DEINIT"
+    }
+  ]
+}
